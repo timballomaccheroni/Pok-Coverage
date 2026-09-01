@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PokéCoverage - Team Builder & Analizzatore Debolezze</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2248%22 fill=%22%23ef4444%22/><path d=%22M 2 50 A 48 48 0 0 0 98 50 Z%22 fill=%22%23ffffff%22/><line x1=%222%22 y1=%2250%22 x2=%2298%22 y2=%2250%22 stroke=%22%231e293b%22 stroke-width=%228%22/><circle cx=%2250%22 cy=%2250%22 r=%2216%22 fill=%22%23ffffff%22 stroke=%22%231e293b%22 stroke-width=%228%22/><circle cx=%2250%22 cy=%2250%22 r=%226%22 fill=%22%231e293b%22/></svg>">
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="app-header">
+    <div class="header-container">
+      <div class="brand-group">
+        <div class="brand-icon"></div>
+        <div>
+          <h1 class="brand-title">PokéCoverage</h1>
+          <p class="brand-tagline">Team Builder & Analizzatore Debolezze con Suggeritore Sinergico</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <!-- Preset Dropdown -->
+        <select id="presetSelect" class="filter-select">
+          <option value="">⚡ Carica Squadra Preset...</option>
+        </select>
+        
+        <button id="btnImportExport" class="btn">
+          <span>📋</span> Importa / Esporta
+        </button>
+        
+        <button id="btnClearTeam" class="btn btn-danger btn-sm" title="Svuota l'intera squadra">
+          <span>🗑️</span> Svuota
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main App Layout -->
+  <main class="main-container">
+
+    <!-- Section 1: Team Roster (6 Slots) -->
+    <section>
+      <div class="section-title-wrap">
+        <div>
+          <h2 class="section-title">
+            <span>🛡️</span> La Tua Squadra Pokémon
+            <span id="teamCountBadge" class="slot-number" style="margin-left: 8px;">0 / 6 Pokémon</span>
+          </h2>
+          <p class="section-subtitle">Aggiungi fino a 6 Pokémon per analizzare le vulnerabilità e ricevere compagni ideali</p>
+        </div>
+      </div>
+
+      <div id="teamGrid" class="team-grid">
+        <!-- 6 Slots rendered dynamically by app.js -->
+      </div>
+    </section>
+
+    <!-- Section 2: Coverage & Weakness Dashboard -->
+    <div class="dashboard-grid">
+      
+      <!-- Panel A: Uncovered Weaknesses & Alerts -->
+      <section class="dash-panel">
+        <div class="section-title-wrap" style="margin-bottom: 4px;">
+          <div>
+            <h2 class="section-title" style="font-size: 1.15rem;">
+              <span>🚨</span> Debolezze Scoperte & Minacce
+            </h2>
+            <p class="section-subtitle">Tipi contro cui la tua squadra non ha resistenze adeguate</p>
+          </div>
+        </div>
+
+        <div id="threatList" class="threat-container">
+          <!-- Dynamically populated -->
+        </div>
+      </section>
+
+      <!-- Panel B: Full 18-Type Defense Matrix -->
+      <section class="dash-panel">
+        <div class="section-title-wrap" style="margin-bottom: 4px;">
+          <div>
+            <h2 class="section-title" style="font-size: 1.15rem;">
+              <span>📊</span> Matrice Difensiva Completa (18 Tipi)
+            </h2>
+            <p class="section-subtitle">Efficacia di tutti i tipi offensivi contro i membri della tua squadra</p>
+          </div>
+        </div>
+
+        <div class="matrix-table-wrap">
+          <table class="matrix-table">
+            <thead>
+              <tr>
+                <th style="text-align: left;">Tipo Attaccante</th>
+                <th>Deboli (2x/4x)</th>
+                <th>Resistenti (½x/¼x)</th>
+                <th>Immuni (0x)</th>
+                <th>Bilancio</th>
+              </tr>
+            </thead>
+            <tbody id="matrixTableBody">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Offensive STAB Summary -->
+        <div style="margin-top: 8px;">
+          <h3 style="font-size: 0.9rem; font-weight: 700; margin-bottom: 8px; color: var(--text-muted);">
+            ⚔️ Copertura Offensiva STAB della Squadra:
+          </h3>
+          <div id="offensiveCoverageWrap" class="coverage-pills-wrap">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- Section 3: Smart Pokemon Recommendations -->
+    <section class="recommendations-section">
+      <div class="section-title-wrap">
+        <div>
+          <h2 class="section-title">
+            <span>💡</span> Suggeritore Intelligente di Pokémon
+          </h2>
+          <p class="section-subtitle">
+            Pokémon calcolati matematicamente per coprire le debolezze scoperte e massimizzare la sinergia difensiva/offensiva
+          </p>
+        </div>
+      </div>
+
+      <!-- Recommendation Filters -->
+      <div class="filter-bar">
+        <div class="filter-group">
+          <span class="filter-label">Filtra per Tipo:</span>
+          <select id="recTypeFilter" class="filter-select">
+            <option value="all">Tutti i Tipi</option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <span class="filter-label">Ruolo:</span>
+          <select id="recRoleFilter" class="filter-select">
+            <option value="all">Tutti i Ruoli</option>
+            <option value="Wall Fisico">Wall Fisico</option>
+            <option value="Wall Speciale">Wall Speciale</option>
+            <option value="Tank Resistente">Tank Resistente</option>
+            <option value="Sweeper Veloce">Sweeper Veloce</option>
+            <option value="Attaccante Pesante">Attaccante Pesante</option>
+            <option value="Bilanciato">Bilanciato</option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <span class="filter-label">Generazione:</span>
+          <select id="recGenFilter" class="filter-select">
+            <option value="0">Tutte le Gen (1-9)</option>
+            <option value="1">Gen 1 (Kanto)</option>
+            <option value="2">Gen 2 (Johto)</option>
+            <option value="3">Gen 3 (Hoenn)</option>
+            <option value="4">Gen 4 (Sinnoh)</option>
+            <option value="5">Gen 5 (Unima)</option>
+            <option value="6">Gen 6 (Kalos)</option>
+            <option value="7">Gen 7 (Alola)</option>
+            <option value="8">Gen 8 (Galar/Hisui)</option>
+            <option value="9">Gen 9 (Paldea)</option>
+          </select>
+        </div>
+
+        <div class="filter-group" style="margin-left: auto;">
+          <input type="text" id="recSearchInput" class="filter-input" placeholder="🔍 Cerca candidato..." style="min-width: 180px;">
+        </div>
+      </div>
+
+      <!-- Recommendations Grid -->
+      <div id="recsGrid" class="recs-grid">
+        <!-- Dynamically rendered -->
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Modal 1: Search / Select Pokemon -->
+  <div id="searchModal" class="modal-backdrop">
+    <div class="modal-window">
+      <div class="modal-header">
+        <h3 id="modalTitle" class="modal-title">Scegli Pokémon per lo Slot</h3>
+        <button id="modalCloseBtn" class="modal-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <input type="text" id="pokemonSearchInput" class="modal-search-input" placeholder="Digita il nome del Pokémon (es. Charizard, Swampert, Tinkaton)..." autofocus>
+        
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+          <select id="modalGenFilter" class="filter-select" style="flex: 1;">
+            <option value="0">Tutte le Generazioni (1-9)</option>
+            <option value="1">Gen 1 (Kanto)</option>
+            <option value="2">Gen 2 (Johto)</option>
+            <option value="3">Gen 3 (Hoenn)</option>
+            <option value="4">Gen 4 (Sinnoh)</option>
+            <option value="5">Gen 5 (Unima)</option>
+            <option value="6">Gen 6 (Kalos)</option>
+            <option value="7">Gen 7 (Alola)</option>
+            <option value="8">Gen 8 (Galar/Hisui)</option>
+            <option value="9">Gen 9 (Paldea)</option>
+          </select>
+          <select id="modalTypeFilter" class="filter-select" style="flex: 1;">
+            <option value="all">Tutti i Tipi</option>
+          </select>
+        </div>
+
+        <div id="searchResultsGrid" class="search-results-grid">
+          <!-- Live results -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 2: Import / Export Team -->
+  <div id="importExportModal" class="modal-backdrop">
+    <div class="modal-window">
+      <div class="modal-header">
+        <h3 class="modal-title">Importa / Esporta Squadra</h3>
+        <button id="importModalCloseBtn" class="modal-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: 0.85rem; color: var(--text-muted);">
+          Incolla una lista di Pokémon (formato Pokémon Showdown o semplici nomi di Pokémon) per importarla, oppure copia il testo per esportarla.
+        </p>
+        <textarea id="importExportTextarea" rows="8" style="width: 100%; background: #1f2937; border: 1px solid var(--border-card); color: #fff; padding: 12px; border-radius: var(--radius-sm); font-family: monospace; font-size: 0.85rem;" placeholder="Charizard&#10;Swampert&#10;Garchomp&#10;Ferrothorn&#10;Togekiss&#10;Gengar"></textarea>
+        
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px;">
+          <button id="btnCopyExport" class="btn">
+            <span>📋</span> Copia Testo
+          </button>
+          <div style="display: flex; gap: 10px;">
+            <button id="btnLoadImport" class="btn btn-primary">
+              <span>📥</span> Importa nella Squadra
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 3: Smart Replace Pokemon Modal -->
+  <div id="replaceModal" class="modal-backdrop">
+    <div class="modal-window replace-modal-window">
+      <div class="modal-header">
+        <h3 class="modal-title">🔄 Scegli quale Pokémon Sostituire</h3>
+        <button id="replaceModalCloseBtn" class="modal-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <!-- Candidate Banner -->
+        <div id="replaceCandidateBanner" class="replace-candidate-banner">
+          <!-- Dynamically populated -->
+        </div>
+
+        <p style="font-size: 0.85rem; color: var(--text-muted);">
+          Seleziona il membro della squadra da sostituire. L'app ha calcolato la variazione di sinergia e le vulnerabilità per ciascun slot:
+        </p>
+
+        <!-- 6 Slots Grid with Delta Synergy -->
+        <div id="replaceSlotsGrid" class="replace-slots-grid">
+          <!-- Dynamically populated with 6 slots -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="pokemon_data.js"></script>
+  <script src="coverage_engine.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
